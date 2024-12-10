@@ -1,7 +1,9 @@
 import SignUpPage from "./SignUpPage";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import axios from "axios";
+
+import { rest, post } from "msw";
+import { setupServer } from "msw/node";
 
 describe("Sign Up Page Tests", () => {
   describe("Layout Tests", () => {
@@ -71,6 +73,15 @@ describe("Sign Up Page Tests", () => {
       expect(button).toBeDisabled();
     });
     it("should send username, password and email to backend after clicking submit", async () => {
+      let requestBody;
+      const server = setupServer(
+        rest.post("/api/1.0/users", async (req, res, ctx) => {
+          requestBody = await req.json();
+          return res(ctx.status(200));
+        })
+      );
+
+      server.listen();
       render(<SignUpPage />);
       const userNameString = "newUsername";
       const emailString = "testing@email.com";
@@ -85,22 +96,18 @@ describe("Sign Up Page Tests", () => {
       userEvent.type(passwordInput, passwordString);
       userEvent.type(repeatPasswordInput, passwordString);
       const button = await screen.findByRole("button", { name: /submit/i });
-
-      const mockFn = jest.fn();
-      window.fetch = mockFn;
-
       userEvent.click(button);
 
-      // getting the first call of the mock function
-      const firstCallOfMockFn = mockFn.mock.calls[0];
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // getting the first parameter of the call
-      const body = JSON.parse(firstCallOfMockFn[1].body);
-      expect(body).toEqual({
+      expect(requestBody).toEqual({
         username: userNameString,
         email: emailString,
         password: passwordString,
       });
+
+      // TODO Good practice to close the server after its being used
+      // afterAll(() => server.close());
     });
   });
 });

@@ -1,9 +1,9 @@
 import React, { Component } from "react";
-import axios from "axios";
-// import { setupServer } from "msw/node";
+// import axios from "axios";
+import { setupServer } from "msw/node";
 // import { useState } from "react";
 
-// skim through msw video, then watch proxy. msw breaks everything for no reason.
+// TODO Proxy lesson
 
 class SignUpPage extends Component {
   state = {
@@ -35,7 +35,7 @@ class SignUpPage extends Component {
       },
       body: JSON.stringify(body),
     });
-    // axios.post("/api/1.0/users", body);
+    // axios.post("/api/1.0/users", JSON.stringify(body));
   };
   render() {
     let disabled = true;
